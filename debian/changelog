@@ -1,3 +1,14 @@
+decompyle (2.3.1-1) unstable; urgency=low
+
+  * Applied patch from Dan Pascu <dan@windowmaker.org> that fixes problems
+    with optimised jumps in Python >= 2.3.  In the previous release
+    (decompyle 2.3), these problems meant that some files were incorrectly
+    decompiled and others could not be decompiled at all.  With this new
+    patch, thorough testing over the standard python libraries suggests that
+    decompyle 2.3.1 can handle everything that decompyle 2.2beta1 could.
+
+ -- Ben Burton <bab@debian.org>  Sun, 16 Jan 2005 18:12:00 +1100
+
 decompyle (2.3-1) unstable; urgency=low
 
   * Now supports python 2.3!  Many thanks to Dan Pascu <dan@windowmaker.org>
