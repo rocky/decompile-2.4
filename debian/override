@@ -1,0 +1,2 @@
+# This is fine according to python policy.
+decompyle: unusual-interpreter ./usr/bin/decompyle #!/usr/bin/python2.3

@@ -1,0 +1,20 @@
+Source: decompyle
+Section: python
+Priority: optional
+Maintainer: Ben Burton <bab@debian.org>
+Build-Depends: debhelper (>= 4.1.67), python, python2.3-dev
+Standards-Version: 3.6.1
+
+Package: decompyle
+Architecture: any
+Section: python
+Depends: ${shlibs:Depends}, ${python:Depends}
+Description: a Python byte-code decompiler
+ Decompyle converts Python byte-code back into equivalent Python source.
+ It accepts byte-code from any Python version between 1.5 and 2.3 inclusive.
+ .
+ The generated source is very readable: docstrings, lists, tuples and
+ hashes get pretty-printed.
+ .
+ Decompyle can also verify the equivalence of the generated source by
+ compiling it and comparing the new byte-code with the original byte-code.

@@ -1,0 +1,118 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH DECOMPYLE 1 "December 12, 2004"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+decompyle \- a Python byte-code decompiler
+.SH SYNOPSIS
+.B decompyle
+[ \fB\-\-verify\fP ]
+[ \fB\-\-showasm\fP ]
+[ \fB\-\-showast\fP ]
+[ \fB\-o\fP \fIpath\fP ]
+\fIfile\fP ...
+.\" \fIfile\fP | \fIdir\fP [ ... ]
+.PP
+.B decompyle \-\-help
+.SH DESCRIPTION
+\fBDecompyle\fP converts Python byte-code back into equivalent Python source.
+It accepts byte-code from any Python version between 1.5 and 2.3 inclusive.
+.PP
+The generated source is very readable: docstrings, lists, tuples and
+hashes get pretty-printed.
+.PP
+Decompyle can also verify the equivalence of the generated source by
+compiling it and comparing the new byte-code with the original byte-code.
+.PP
+.\" Any directories given on the command-line are processed recursively.
+.\" .PP
+Generated files have the following extensions:
+.TP
+.I .dis
+A successfully decompyled file (and successfully verified if
+\-\-verify was used).
+.TP
+.I .dis_unverified
+A successfully decompyled file for which \-\-verify failed.
+.TP
+.I .nodis
+A file for which the decompyle failed.  Please report this bug to the
+author or to the Debian bug tracking system.
+.SH OPTIONS
+A summary of options is included below.
+.TP
+\fB\-o\fP \fIpath\fP
+Output decompyled files to the given path.
+If multiple input files are decompyled, the longest common prefix is
+stripped from their pathnames and the remainder appended to \fIpath\fP
+(see the examples below for details).
+.TP
+\fB\-\-verify\fP
+Recompile generated sources and compare with the original input
+byte-code (requires \fB\-o\fP).
+.TP
+\fB\-\-showasm\fP
+Include byte-code in the output (disables \fB\-\-verify\fP).
+.TP
+\fB\-\-showast\fP
+Include the AST (abstract syntax tree) in the output
+(disables \fB\-\-verify\fP).
+.TP
+\fB\-\-help\fP
+Print a usage message and exit.
+.SH EXAMPLES
+To decompyle \fIfoo.pyc\fP and \fIbar.pyc\fP to standard output:
+.PP
+.RS
+\fIexample$\fP decompyle foo.pyc bar.pyc
+.RE
+.PP
+To decompyle \fIfoo.pyc\fP and \fIbar.pyc\fP to \fI./foo.dis\fP
+and \fI./bar.dis\fP:
+.PP
+.RS
+\fIexample$\fP decompyle \-o . foo.pyc bar.pyc
+.RE
+.PP
+To decompyle \fIbla/fasel.pyc\fP and \fIbla/foo.pyc\fP into \fI/tmp\fP
+(creating \fI/tmp/fasel.dis\fP and \fI/tmp/foo.dis\fP):
+.PP
+.RS
+\fIexample$\fP decompyle \-o /tmp bla/fasel.pyc bla/foo.pyc
+.RE
+.PP
+To decompyle \fIbla/fasel.pyc\fP and \fIbar/foo.pyc\fP into \fI/tmp\fP
+(creating \fI/tmp/bla/fasel.dis\fP and \fI/tmp/bar/foo.dis\fP):
+.PP
+.RS
+\fIexample$\fP decompyle \-o /tmp bla/fasel.pyc bar/foo.pyc
+.RE
+.\" .PP
+.\" To decompyle the entire Python 2.2 library into \fI/tmp\fP
+.\" (creating \fI/tmp/smtplib.dis\fP, \fI/tmp/lib-tk/FixTk.dis\fP, etc.):
+.\" .PP
+.\" .RS
+.\" \fIexample$\fP decompyle \-o /tmp /usr/lib/python2.2
+.\" .RE
+.SH SEE ALSO
+The original documentation from the program author is available in
+\fI/usr/share/doc/decompyle/\fP.
+.SH AUTHOR
+Decompyle was written by Hartmut Goebel <hartmut@goebel.noris.de> and
+John Aycock, with Python 2.3 support added by Dan Pascu <dan@windowmaker.org>.
+.br
+This manual page was prepared by Ben Burton <bab@debian.org> for the Debian
+GNU/Linux system (but may be used by others).

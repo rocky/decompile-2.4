@@ -1,0 +1,68 @@
+decompyle (2.3-1) unstable; urgency=low
+
+  * Now supports python 2.3!  Many thanks to Dan Pascu <dan@windowmaker.org>
+    for providing the necessary code.
+  * All dependencies and build-depends are now based on python 2.3 instead
+    of python 2.2.
+
+ -- Ben Burton <bab@debian.org>  Mon, 13 Dec 2004 08:30:03 +1100
+
+decompyle (2.2beta1-7) unstable; urgency=low
+
+  * Updated copyright and readme files to reflect the fact that the old
+    upstream site is no longer available.  Also added license information
+    to the copyright file for the previously uncredited marshal_22_for_20.c.
+  * Don't include .pyc files in the .debs since they're already being
+    regenerated in the postinsts.
+  * Using dh_python in the debian build.
+  * Bumped standards-version to 3.6.1.
+
+ -- Ben Burton <bab@debian.org>  Sat,  3 Jul 2004 11:54:29 +1000
+
+decompyle (2.2beta1-6) unstable; urgency=low
+
+  * New upstream URL.
+  * Minor manpage cleanups.
+  * Bumped standards-version to 3.6.0.
+  * Changed package section from interpreters to python.
+
+ -- Ben Burton <bab@debian.org>  Thu, 28 Aug 2003 17:01:02 +1000
+
+decompyle (2.2beta1-5) unstable; urgency=low
+
+  * Fixed typos (decomplye) (closes: Bug#179181).
+
+ -- Ben Burton <bab@debian.org>  Sat,  1 Feb 2003 01:24:01 +1100
+
+decompyle (2.2beta1-4) unstable; urgency=low
+
+  * Oops, forgot to change the maintainer email address in some places.
+  * Last day of linux.conf.au!
+
+ -- Ben Burton <bab@debian.org>  Sat, 25 Jan 2003 13:22:44 +0800
+
+decompyle (2.2beta1-3) unstable; urgency=low
+
+  * Standards-version bumped to 3.5.8.
+  * New maintainer email address.
+
+ -- Ben Burton <bab@debian.org>  Fri, 24 Jan 2003 07:52:46 +0800
+
+decompyle (2.2beta1-2) unstable; urgency=low
+
+  * Call python2.2 instead of python in debian/rules (closes: Bug#160407).
+  * Depend on python2.2 instead of python (>= 2.2), python (<< 2.3) and
+    start the script with /usr/bin/python2.2 instead of /usr/bin/python.
+  * Aesthetic update for manpage.
+
+ -- Ben Burton <benb@acm.org>  Wed, 11 Sep 2002 09:09:03 +1000
+
+decompyle (2.2beta1-1) unstable; urgency=low
+
+  * Initial Release (closes: Bug#119160).
+
+ -- Ben Burton <benb@acm.org>  Wed,  4 Sep 2002 14:14:48 +1000
+
+Local variables:
+mode: debian-changelog
+End:
