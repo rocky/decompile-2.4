@@ -172,6 +172,7 @@ TABLE_DIRECT = {
 #   'dup_topx':		( '%c', 0),
     'designList':	( '%c = %c', 0, -1 ),
     'and':          	( '(%c and %c)', 0, 3 ),
+    'and2':          	( '%c', 4 ),
     'or':           	( '(%c or %c)', 0, 3 ),
     'compare':		( '(%c %[-1]{pattr} %c)', 0, 1 ),
     'cmp_list':		( '%c %c', 0, 1),

@@ -411,9 +411,11 @@ class Parser(GenericASTBuilder):
 		expr ::= expr expr DUP_TOPX_2 SLICE+2
 		expr ::= expr expr expr DUP_TOPX_3 SLICE+3
 		expr ::= and
+		expr ::= and2
 		expr ::= or
 		or   ::= expr JUMP_IF_TRUE  POP_TOP expr COME_FROM
 		and  ::= expr JUMP_IF_FALSE POP_TOP expr COME_FROM
+		and2 ::= _jump JUMP_IF_FALSE POP_TOP COME_FROM expr COME_FROM
 
 		cmp ::= cmp_list
 		cmp ::= compare
