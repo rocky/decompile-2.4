@@ -399,6 +399,9 @@ class Scanner:
                 end    = _end
                 parent = s
 
+        ## We need to know how many new structures were added in this run
+        origStructCount = len(self.__structs)
+
         if op == SETUP_LOOP:
             start  = pos+3
             target = self.__get_target(code, pos, op)
@@ -466,13 +469,13 @@ class Scanner:
 
             target = self.__get_target(code, jump_end)
             end = self.__restrict_to_parent(target, parent)
+            if target != end:
+                self.__fixed_jumps[jump_end] = end
+
             ## Add the try-else block
             self.__structs.append({'type':  'try-else',
                                    'start': end_finally+1,
                                    'end':   end})
-            if target != end:
-                self.__fixed_jumps[jump_end] = end
-
             ## Add the except blocks
             i = start
             while i < end_finally:
@@ -501,6 +504,26 @@ class Scanner:
                         self.__structs.append({'type':  'if-else',
                                                'start': target+1,
                                                'end':   end})
+
+        ## Now fix end of structs that have a continue at their end
+        if float(self.__version) >= 2.3:
+            ltypes = ('for-loop', 'while-loop')
+            loops = [x['start'] for x in self.__structs if x['type'] in ltypes]
+            for i in range(origStructCount, len(self.__structs)):
+                s = self.__structs[i]
+                start = s['start']
+                end = s['end']
+                if end-start < 3:
+                    continue
+                pos = end - 3
+                if ord(code[pos])==JUMP_ABSOLUTE:
+                    target = self.__get_target(code, pos, JUMP_ABSOLUTE)
+                    if target in loops:
+                        jmp = self.__first_instr(code, start, end,
+                                                 JUMP_ABSOLUTE, target)
+                        if jmp is not None and jmp!=pos:
+                            s['end'] = pos
+
 
     def find_jump_targets(self, code):
         """
@@ -535,6 +558,11 @@ class Scanner:
                 self.__detect_structure(code, i, op)
 
             if op >= HAVE_ARGUMENT:
+                #from pprint import pprint
+                #pprint(self.__structs)
+                #pprint(self.__fixed_jumps)
+                #pprint(self.__ignored_ifs)
+
                 label = self.__fixed_jumps.get(i)
                 if label is None:
                     oparg = ord(code[i+1]) + ord(code[i+2]) * 256
