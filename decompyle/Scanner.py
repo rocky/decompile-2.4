@@ -356,6 +356,19 @@ class Scanner:
             return 1 ## Exception match
         return 0
 
+    def __fix_parent(self, code, target, parent):
+        """Fix parent boundaries if needed"""
+        JUMP_ABSOLUTE = self.dis.opmap['JUMP_ABSOLUTE']
+        start = parent['start']
+        end = parent['end']
+        # Use >= instead for target>start ?
+        if target >= start or end-start < 3 or target not in self.__loops:
+            return
+        if ord(code[end-3])==JUMP_ABSOLUTE:
+            cont_target = self.__get_target(code, end-3, JUMP_ABSOLUTE)
+            if target == cont_target:
+                parent['end'] = end-3
+
     def __restrict_to_parent(self, target, parent):
         """Restrict pos to parent boundaries."""
         if not (parent['start'] < target < parent['end']):
@@ -423,6 +436,7 @@ class Scanner:
                 test = self.__first_instr(code, start, jump_back, lookup)
                 assert(test is not None)
                 self.__ignored_ifs.append(test)
+            self.__loops.append(target)
             self.__structs.append({'type': loop_type + '-loop',
                                    'start': target,
                                    'end':   jump_back})
@@ -457,6 +471,7 @@ class Scanner:
             ## Now isolate the except and else blocks
             start  = end
             target = self.__get_target(code, start-3)
+            self.__fix_parent(code, target, parent)
             end    = self.__restrict_to_parent(target, parent)
             if target != end:
                 self.__fixed_jumps[start-3] = end
@@ -495,6 +510,7 @@ class Scanner:
                 if parent['start'] <= target < parent['end']:
                     if ord(code[target-3]) in [JUMP_ABSOLUTE, JUMP_FORWARD]:
                         if_end = self.__get_target(code, target-3)
+                        self.__fix_parent(code, if_end, parent)
                         end    = self.__restrict_to_parent(if_end, parent)
                         if if_end != end:
                             self.__fixed_jumps[target-3] = end
@@ -504,26 +520,6 @@ class Scanner:
                         self.__structs.append({'type':  'if-else',
                                                'start': target+1,
                                                'end':   end})
-
-        ## Now fix end of structs that have a continue at their end
-        if float(self.__version) >= 2.3:
-            ltypes = ('for-loop', 'while-loop')
-            loops = [x['start'] for x in self.__structs if x['type'] in ltypes]
-            for i in range(origStructCount, len(self.__structs)):
-                s = self.__structs[i]
-                start = s['start']
-                end = s['end']
-                if end-start < 3:
-                    continue
-                pos = end - 3
-                if ord(code[pos])==JUMP_ABSOLUTE:
-                    target = self.__get_target(code, pos, JUMP_ABSOLUTE)
-                    if target in loops:
-                        jmp = self.__first_instr(code, start, end,
-                                                 JUMP_ABSOLUTE, target)
-                        if jmp is not None and jmp!=pos:
-                            s['end'] = pos
-
 
     def find_jump_targets(self, code):
         """
@@ -545,6 +541,7 @@ class Scanner:
         self.__structs = [{'type':  'root',
                            'start': 0,
                            'end':   n-1}]
+        self.__loops = []
         self.__fixed_jumps = {}
         self.__ignored_ifs = []
 
