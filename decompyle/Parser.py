@@ -286,30 +286,27 @@ class Parser(GenericASTBuilder):
 				LOAD_GLOBAL expr RAISE_VARARGS
 				COME_FROM POP_TOP
 
-		_come_from_opt ::= COME_FROM
-		_come_from_opt ::= 
-
 		_jump ::= JUMP_ABSOLUTE
 		_jump ::= JUMP_FORWARD
 
 		ifstmt ::= expr condjmp stmts_opt
-				_jump COME_FROM POP_TOP _come_from_opt
+				_jump COME_FROM POP_TOP COME_FROM
 
 		ifelsestmt ::= expr condjmp stmts_opt
 				_jump COME_FROM
-				POP_TOP stmts _come_from_opt
+				POP_TOP stmts COME_FROM
 
 		trystmt ::= SETUP_EXCEPT stmts_opt
 				POP_BLOCK _jump
 				COME_FROM except_stmt
 
-		try_end  ::= END_FINALLY _come_from_opt
+		try_end  ::= END_FINALLY COME_FROM
 		try_end  ::= except_else
-		except_else ::= END_FINALLY _come_from_opt stmts
+		except_else ::= END_FINALLY COME_FROM stmts
 
-		except_stmt ::= except_cond except_stmt _come_from_opt
-		except_stmt ::= except_conds try_end _come_from_opt
-		except_stmt ::= except try_end _come_from_opt
+		except_stmt ::= except_cond except_stmt COME_FROM
+		except_stmt ::= except_conds try_end COME_FROM
+		except_stmt ::= except try_end COME_FROM
 		except_stmt ::= try_end
 
 		except_conds ::= except_cond except_conds COME_FROM
