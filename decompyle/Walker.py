@@ -216,7 +216,9 @@ TABLE_DIRECT = {
     'elifelsestmt':	( '%|elif %c:\n%+%c%-%|else:\n%+%c%-', 0, 2, -2 ),
 
     'whilestmt':	( '%|while %c:\n%+%c%-\n', 1, 4 ),
-    'whileelsestmt':	( '%|while %c:\n%+%c%-%|else:\n%+%c%-\n', 1, 4, 9 ),
+    'while1stmt':	( '%|while 1:\n%+%c%-\n', 5 ),
+    'whileelsestmt':	( '%|while %c:\n%+%c%-%|else:\n%+%c%-\n', 1, 4, -2 ),
+    'while1elsestmt':	( '%|while 1:\n%+%c%-%|else:\n%+%c%-\n', 5, -2 ),
     'forstmt':		( '%|for %c in %c:\n%+%c%-\n', 3, 1, 4 ),
     'forelsestmt':	(
         '%|for %c in %c:\n%+%c%-%|else:\n%+%c%-\n', 3, 1, 4, -2

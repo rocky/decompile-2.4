@@ -243,7 +243,9 @@ class Parser(GenericASTBuilder):
 		stmt ::= ifstmt
 		stmt ::= ifelsestmt
 		stmt ::= whilestmt
+		stmt ::= while1stmt
 		stmt ::= whileelsestmt
+		stmt ::= while1elsestmt
 		stmt ::= forstmt
 		stmt ::= forelsestmt
 		stmt ::= trystmt
@@ -336,8 +338,17 @@ class Parser(GenericASTBuilder):
 				expr JUMP_IF_FALSE POP_TOP
 				stmts_opt JUMP_ABSOLUTE
 				COME_FROM POP_TOP POP_BLOCK COME_FROM
+		while1stmt ::= SETUP_LOOP
+				JUMP_FORWARD JUMP_IF_FALSE POP_TOP COME_FROM
+				stmts_opt JUMP_ABSOLUTE
+				COME_FROM POP_TOP POP_BLOCK COME_FROM
 		whileelsestmt ::= SETUP_LOOP
 		              	expr JUMP_IF_FALSE POP_TOP
+				stmts_opt JUMP_ABSOLUTE
+				COME_FROM POP_TOP POP_BLOCK
+				stmts COME_FROM
+		while1elsestmt ::= SETUP_LOOP
+		              	JUMP_FORWARD JUMP_IF_FALSE POP_TOP COME_FROM
 				stmts_opt JUMP_ABSOLUTE
 				COME_FROM POP_TOP POP_BLOCK
 				stmts COME_FROM

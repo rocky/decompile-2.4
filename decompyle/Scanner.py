@@ -210,6 +210,7 @@ class Scanner:
         """
         HAVE_ARGUMENT = self.dis.HAVE_ARGUMENT
         SETUP_LOOP = self.dis.SETUP_LOOP
+        #JUMP_ABSOLUTE = self.dis.JUMP_ABSOLUTE
         hasjrel = self.dis.hasjrel
         #hasjabs = self.dis.hasjabs
 
@@ -226,9 +227,15 @@ class Scanner:
                 label = -1
                 if op in hasjrel:
                     label = i + oparg
-                    if op==SETUP_LOOP:
+                    if op == SETUP_LOOP:
                         ## Fix for loop optimization in python 2.3+
                         label = self.__find_first_jump(code, i, label, label)
+                #elif op == JUMP_ABSOLUTE:
+                #    label = oparg
+                #    ## Fix if-then-else optimization in python 2.3+
+                #    label = self.__find_first_jump(code, i, label, label)
+                #    if label == oparg:
+                #        label = -1
                 # todo: absolut jumps
                 #elif op in hasjabs:
                 #    label = oparg
