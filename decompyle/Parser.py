@@ -87,7 +87,7 @@ class Parser(GenericASTBuilder):
 		list_for ::= expr _for designator list_iter
 				JUMP_ABSOLUTE COME_FROM
 		list_if ::= expr condjmp list_iter
-				JUMP_FORWARD COME_FROM POP_TOP
+				_jump COME_FROM POP_TOP
 				COME_FROM
 
 		lc_body ::= LOAD_NAME expr CALL_FUNCTION_1 POP_TOP

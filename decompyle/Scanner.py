@@ -292,6 +292,7 @@ class Scanner:
                 return jmp
             after = jmp + 3
             ops = [None, None, None, None]
+            opp = [0, 0, 0, 0]
             pos = 0
             x = jmp+3
             while x <= end and pos < 4:
@@ -302,9 +303,10 @@ class Scanner:
                 elif op >= HAVE_ARGUMENT:
                     break
                 ops[pos] = op
+                opp[pos] = x
                 pos += 1
                 x += 1
-            if ops[0] == POP_TOP and ops[1] == END_FINALLY:
+            if ops[0] == POP_TOP and ops[1] == END_FINALLY and opp[1] == end:
                 return jmp
             if ops[0] == POP_TOP and ops[1] == DUP_TOP:
                 return jmp
@@ -312,6 +314,24 @@ class Scanner:
                 return jmp
             start = jmp + 3
         return None
+
+    def __list_comprehension(self, code, pos, op=None):
+        """
+        Determine if there is a list comprehension structure starting at pos
+        """
+        BUILD_LIST = self.dis.opmap['BUILD_LIST']
+        DUP_TOP    = self.dis.opmap['DUP_TOP']
+        LOAD_ATTR  = self.dis.opmap['LOAD_ATTR']
+        if op is None:
+            op = ord(code[pos])
+        if op != BUILD_LIST:
+            return 0
+        try:
+            elems = ord(code[pos+1]) + ord(code[pos+2])*256
+            codes = (op, elems, ord(code[pos+3]), ord(code[pos+4]))
+        except IndexError:
+            return 0
+        return (codes==(BUILD_LIST, 0, DUP_TOP, LOAD_ATTR))
 
     def __ignore_if(self, code, pos):
         """
@@ -336,11 +356,11 @@ class Scanner:
             return 1 ## Exception match
         return 0
 
-    def __restrict_to_parent(self, pos, parent):
+    def __restrict_to_parent(self, target, parent):
         """Restrict pos to parent boundaries."""
-        if not (parent['start'] < pos < parent['end']):
-            pos = parent['end']
-        return pos
+        if not (parent['start'] < target < parent['end']):
+            target = parent['end']
+        return target
 
     def __detect_structure(self, code, pos, op=None):
         """
@@ -351,6 +371,7 @@ class Scanner:
         # TODO: check the struct boundaries more precisely -Dan
 
         SETUP_LOOP    = self.dis.opmap['SETUP_LOOP']
+        BUILD_LIST    = self.dis.opmap['BUILD_LIST']
         FOR_ITER      = self.dis.opmap['FOR_ITER']
         GET_ITER      = self.dis.opmap['GET_ITER']
         SETUP_EXCEPT  = self.dis.opmap['SETUP_EXCEPT']
@@ -405,6 +426,21 @@ class Scanner:
             self.__structs.append({'type': loop_type + '-else',
                                    'start': jump_back+3,
                                    'end':   end})
+        elif self.__list_comprehension(code, pos, op):
+            get_iter = self.__first_instr(code, pos+7, end, GET_ITER)
+            for_iter = self.__first_instr(code, get_iter, end, FOR_ITER)
+            assert(get_iter is not None and for_iter is not None)
+            start  = get_iter+1
+            target = self.__get_target(code, for_iter, FOR_ITER)
+            end    = self.__restrict_to_parent(target, parent)
+            jump_back = self.__last_instr(code, start, end, JUMP_ABSOLUTE,
+                                          start, False)
+            assert(jump_back is not None)
+            target = self.__get_target(code, jump_back, JUMP_ABSOLUTE)
+            start = self.__restrict_to_parent(target, parent)
+            self.__structs.append({'type': 'list-comprehension',
+                                   'start': start,
+                                   'end':   jump_back})
         elif op == SETUP_EXCEPT:
             start  = pos+3
             target = self.__get_target(code, pos, op)
@@ -485,7 +521,7 @@ class Scanner:
         n = len(code)
         self.__structs = [{'type':  'root',
                            'start': 0,
-                           'end':   n}]
+                           'end':   n-1}]
         self.__fixed_jumps = {}
         self.__ignored_ifs = []
 
