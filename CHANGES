@@ -1,9 +1,12 @@
+release 2.3.2
+  - tidied up copyright and changelog information for releases 2.3 and later
+
 release 2.3.1 (Dan Pascu)
   - implemented a structure detection technique that fixes problems with
     optimised jumps in Python >= 2.3. In the previous release (decompyle 2.3),
-    these problems meant that some files were incorrectly decompiled and others
-    could not be decompiled at all.  With this new structure detection
-    technique, thorough testing over the standard python libraries suggests 
+    these problems meant that some files were incorrectly decompiled and
+    others could not be decompiled at all. With this new structure detection
+    technique, thorough testing over the standard python libraries suggests
     that decompyle 2.3.1 can handle everything that decompyle 2.2beta1 could,
     plus new Python 2.3 bytecodes and constructs.
 
@@ -11,7 +14,7 @@ release 2.3 (Dan Pascu)
   - support for Python 2.3 added
   - use the marshal and disassembly code from their respective python
     versions, so that decompyle can manipulate bytecode independently
-    of the interpreter that runs decompyle itself (for example it can 
+    of the interpreter that runs decompyle itself (for example it can
     decompile python2.3 bytecode even when running under python2.2)
 
 release 2.2beta1 (hartmut Goebel)
