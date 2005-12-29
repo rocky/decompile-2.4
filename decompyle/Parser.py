@@ -78,12 +78,15 @@ class Parser(GenericASTBuilder):
 	def p_list_comprehension(self, args):
 		'''
 		expr ::= list_compr
-		list_compr ::= BUILD_LIST_0 DUP_TOP LOAD_ATTR
+		list_compr ::= BUILD_LIST_0 DUP_TOP _load_attr
 				designator list_iter del_stmt
 
 		list_iter ::= list_for
 		list_iter ::= list_if
 		list_iter ::= lc_body
+
+        _load_attr ::= LOAD_ATTR
+        _load_attr ::=
 
 		list_for ::= expr _for designator list_iter
 				JUMP_ABSOLUTE COME_FROM
@@ -93,6 +96,8 @@ class Parser(GenericASTBuilder):
 
 		lc_body ::= LOAD_NAME expr CALL_FUNCTION_1 POP_TOP
 		lc_body ::= LOAD_FAST expr CALL_FUNCTION_1 POP_TOP
+		lc_body ::= LOAD_NAME expr LIST_APPEND
+        lc_body ::= LOAD_FAST expr LIST_APPEND
 		'''
 		
 	def p_augmented_assign(self, args):

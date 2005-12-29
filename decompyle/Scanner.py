@@ -355,6 +355,7 @@ class Scanner:
         BUILD_LIST = self.dis.opmap['BUILD_LIST']
         DUP_TOP    = self.dis.opmap['DUP_TOP']
         LOAD_ATTR  = self.dis.opmap['LOAD_ATTR']
+        STORE_NAME = self.dis.opmap['STORE_NAME']
         if op is None:
             op = ord(code[pos])
         if op != BUILD_LIST:
@@ -364,7 +365,10 @@ class Scanner:
             codes = (op, elems, ord(code[pos+3]), ord(code[pos+4]))
         except IndexError:
             return 0
-        return (codes==(BUILD_LIST, 0, DUP_TOP, LOAD_ATTR))
+        if self.__version == '2.4':
+            return (codes==(BUILD_LIST, 0, DUP_TOP, STORE_NAME))
+        else:
+            return (codes==(BUILD_LIST, 0, DUP_TOP, LOAD_ATTR))
 
     def __ignore_if(self, code, pos):
         """
