@@ -19,6 +19,7 @@ versions = {
     __build_magic(60202): '2.1',
     __build_magic(60717): '2.2',
     __build_magic(62011): '2.3',
+    __build_magic(62061): '2.4',
 }
 
 magics = __by_version(versions)

@@ -2,7 +2,7 @@
 
 """Setup script for the 'decompyle' distribution."""
 
-____revision__ = "$Id: setup.py,v 1.1 2004/12/14 12:29:31 dan Exp $"
+____revision__ = "$Id: setup.py,v 1.2 2005/12/29 20:23:04 dan Exp $"
 
 from distutils.core import setup, Extension
 
@@ -22,6 +22,9 @@ setup (name = "decompyle",
                                 define_macros=[]),
                       Extension('decompyle/marshal_23',
                                 ['decompyle/marshal_23.c'],
+                                define_macros=[]),
+                      Extension('decompyle/marshal_24',
+                                ['decompyle/marshal_24.c'],
                                 define_macros=[]),
                       ]
       )

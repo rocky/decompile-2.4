@@ -9,6 +9,7 @@ by_version = {
     '2.1': 'marshal_22',
     '2.2': 'marshal_22',
     '2.3': 'marshal_23',
+    '2.4': 'marshal_24',
 }
 
 by_magic = dict( [ (mag, by_version[ver])
