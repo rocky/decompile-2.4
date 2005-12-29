@@ -9,6 +9,7 @@ Package: decompyle
 Architecture: any
 Section: python
 Depends: ${shlibs:Depends}, ${python:Depends}
+Suggests: decompyle2.2
 Description: a Python byte-code decompiler
  Decompyle converts Python byte-code back into equivalent Python source.
  It accepts byte-code from any Python version between 1.5 and 2.3 inclusive.
@@ -18,3 +19,9 @@ Description: a Python byte-code decompiler
  .
  Decompyle can also verify the equivalence of the generated source by
  compiling it and comparing the new byte-code with the original byte-code.
+ .
+ Note that an older version of decompyle is available in the decompyle2.2
+ package.  The older version cannot handle Python 2.3 byte-code, but it
+ might provide a greater success rate with byte-code from Python 2.2 and
+ below.  Both the newer decompyle and the older decompyle2.2 may be
+ installed together without problems.

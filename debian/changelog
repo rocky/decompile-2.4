@@ -1,3 +1,10 @@
+decompyle (2.3.2-2) unstable; urgency=low
+
+  * Added notes in the package description and README.Debian explaining the
+    roles of the new decompyle and old decompyle2.2 packages.
+
+ -- Ben Burton <bab@debian.org>  Thu, 24 Mar 2005 07:59:47 +1100
+
 decompyle (2.3.2-1) unstable; urgency=low
 
   * Tidied up changelog and copyright information in the upstream tarball,
