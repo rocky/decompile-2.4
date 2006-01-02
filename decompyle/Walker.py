@@ -172,12 +172,12 @@ TABLE_DIRECT = {
     'augassign2':	( '%|%c%c %c %c\n', 0, 2, -3, -4),
 #   'dup_topx':		( '%c', 0),
     'designList':	( '%c = %c', 0, -1 ),
-    'and':          	( '(%c and %c)', 0, 3 ),
+    'and':          	( '(%c and %c)', 0, 4 ),
     'and2':          	( '%c', 4 ),
-    'or':           	( '(%c or %c)', 0, 3 ),
+    'or':           	( '(%c or %c)', 0, 4 ),
     'compare':		( '(%c %[-1]{pattr} %c)', 0, 1 ),
     'cmp_list':		( '%c %c', 0, 1),
-    'cmp_list1':	( '%[3]{pattr} %c %c', 0, -2),
+    'cmp_list1':	( '%[3]{pattr} %c %c', 0, -1),
     'cmp_list2':	( '%[1]{pattr} %c', 0),
 #   'classdef': 	(), # handled by n_classdef()
     'funcdef':  	( '\n%|def %c\n', -2), # -2 to handle closures
@@ -189,8 +189,8 @@ TABLE_DIRECT = {
     'importstar2':	( '%|from %[1]{pattr} import *\n', ),
     'importfrom2':	( '%|from %[1]{pattr} import %c\n', 2 ),
     'importlist2':	( '%C', (0, sys.maxint, ', ') ),
-    'assert':		( '%|assert %c\n' , 3 ),
-    'assert2':		( '%|assert %c, %c\n' , 3, -5 ),
+    'assert':		( '%|assert %c\n' , 4 ),
+    'assert2':		( '%|assert %c, %c\n' , 4, -5 ),
     'assert3':		( '%|assert %c\n' , 0 ),
     'assert4':		( '%|assert %c, %c\n' , 0, -4 ),
 
@@ -210,27 +210,29 @@ TABLE_DIRECT = {
     'return_stmt':	( '%|return %c\n', 0),
     'return_lambda':	( '%c', 0),
 
-    'ifstmt':		( '%|if %c:\n%+%c%-', 0, 2 ),
-    'ifelsestmt':	( '%|if %c:\n%+%c%-%|else:\n%+%c%-', 0, 2, -2 ),
-    'ifelifstmt':	( '%|if %c:\n%+%c%-%c', 0, 2, -2 ),
-    'elifelifstmt':	( '%|elif %c:\n%+%c%-%c', 0, 2, -2 ),
-    'elifstmt':		( '%|elif %c:\n%+%c%-', 0, 2 ),
-    'elifelsestmt':	( '%|elif %c:\n%+%c%-%|else:\n%+%c%-', 0, 2, -2 ),
+    'ifstmt':		( '%|if %c:\n%+%c%-', 0, 3 ),
+    'ifelsestmt':	( '%|if %c:\n%+%c%-%|else:\n%+%c%-', 0, 3, -2 ),
+    'ifelifstmt':	( '%|if %c:\n%+%c%-%c', 0, 3, -2 ),
+    'elifelifstmt':	( '%|elif %c:\n%+%c%-%c', 0, 3, -2 ),
+    'elifstmt':		( '%|elif %c:\n%+%c%-', 0, 3 ),
+    'elifelsestmt':	( '%|elif %c:\n%+%c%-%|else:\n%+%c%-', 0, 3, -2 ),
 
-    'whilestmt':	( '%|while %c:\n%+%c%-\n', 1, 4 ),
-    'while1stmt':	( '%|while 1:\n%+%c%-\n', 5 ),
-    'whileelsestmt':	( '%|while %c:\n%+%c%-%|else:\n%+%c%-\n', 1, 4, -2 ),
-    'while1elsestmt':	( '%|while 1:\n%+%c%-%|else:\n%+%c%-\n', 5, -2 ),
+    'whilestmt':	( '%|while %c:\n%+%c%-\n', 2, 4 ),
+    'while1stmt':	( '%|while 1:\n%+%c%-\n', 3 ),
+    'while12stmt':	( '%|while 1:\n%+%c%-\n', 5 ),
+    'whileelsestmt':	( '%|while %c:\n%+%c%-%|else:\n%+%c%-\n', 2, 4, -2 ),
+    'while1elsestmt':	( '%|while 1:\n%+%c%-%|else:\n%+%c%-\n', 3, -2 ),
+    'while12elsestmt':	( '%|while 1:\n%+%c%-%|else:\n%+%c%-\n', 5, -2 ),
     'forstmt':		( '%|for %c in %c:\n%+%c%-\n', 3, 1, 4 ),
     'forelsestmt':	(
         '%|for %c in %c:\n%+%c%-%|else:\n%+%c%-\n', 3, 1, 4, -2
      ),
-    'trystmt':		( '%|try:\n%+%c%-%c', 1, 5 ),
-    'except':		( '%|except:\n%+%c%-', 3 ),
-    'except_cond1':	( '%|except %c:\n%+%c%-', 1, 8 ),
-    'except_cond2':	( '%|except %c, %c:\n%+%c%-', 1, 6, 8 ),
+    'trystmt':		( '%|try:\n%+%c%-%c', 2, 6 ),
+    'except':		( '%|except:\n%+%c%-', 4 ),
+    'except_cond1':	( '%|except %c:\n%+%c%-', 2, 9 ),
+    'except_cond2':	( '%|except %c, %c:\n%+%c%-', 2, 7, 9 ),
     'except_else':	( '%|else:\n%+%c%-', 2 ),
-    'tryfinallystmt':	( '%|try:\n%+%c%-\n%|finally:\n%+%c%-\n', 1, 5 ),
+    'tryfinallystmt':	( '%|try:\n%+%c%-\n%|finally:\n%+%c%-\n', 1, 4 ),
     'passstmt':		( '%|pass\n', ),
     'STORE_FAST':	( '%{pattr}', ),
     'kv':		( '%c: %c', 3, 1 ),
@@ -387,6 +389,7 @@ class Walker(GenericASTTraversal, object):
         elif data is None:
             # LOAD_CONST 'None' only occurs, when None is
             # implicit eg. in 'return' w/o params
+            #self.write('None')
             pass
         else:
             self.write(repr(data))
@@ -425,7 +428,7 @@ class Walker(GenericASTTraversal, object):
         while n == 'list_iter':
             n = n[0] # recurse one step
             if   n == 'list_for':	n = n[3]
-            elif n == 'list_if':	n = n[2]
+            elif n == 'list_if':	n = n[3]
         assert n == 'lc_body'
         self.write( '[ '); 
         self.preorder(n[1]) # lc_body

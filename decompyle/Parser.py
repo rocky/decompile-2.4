@@ -88,11 +88,19 @@ class Parser(GenericASTBuilder):
         _load_attr ::= LOAD_ATTR
         _load_attr ::=
 
-		list_for ::= expr _for designator list_iter
-				JUMP_ABSOLUTE COME_FROM
-		list_if ::= expr condjmp list_iter
-				_jump COME_FROM POP_TOP
-				COME_FROM
+		_lcfor ::= GET_ITER LIST_COMPREHENSION_START FOR_ITER
+		_lcfor ::= LOAD_CONST FOR_LOOP
+		_lcfor2 ::= GET_ITER FOR_ITER
+		_lcfor2 ::= LOAD_CONST FOR_LOOP
+
+		list_for ::= expr _lcfor designator list_iter
+				LIST_COMPREHENSION_END JUMP_ABSOLUTE
+
+		list_for ::= expr _lcfor2 designator list_iter
+				JUMP_ABSOLUTE
+
+		list_if ::= expr condjmp IF_THEN_START list_iter
+				IF_THEN_END _jump POP_TOP IF_ELSE_START IF_ELSE_END
 
 		lc_body ::= LOAD_NAME expr CALL_FUNCTION_1 POP_TOP
 		lc_body ::= LOAD_FAST expr CALL_FUNCTION_1 POP_TOP
@@ -250,8 +258,10 @@ class Parser(GenericASTBuilder):
 		stmt ::= ifelsestmt
 		stmt ::= whilestmt
 		stmt ::= while1stmt
+        stmt ::= while12stmt
 		stmt ::= whileelsestmt
 		stmt ::= while1elsestmt
+		stmt ::= while12elsestmt
 		stmt ::= forstmt
 		stmt ::= forelsestmt
 		stmt ::= trystmt
@@ -278,93 +288,107 @@ class Parser(GenericASTBuilder):
 		condjmp    ::= JUMP_IF_TRUE  POP_TOP
 
 		assert ::= expr JUMP_IF_FALSE POP_TOP
-				expr JUMP_IF_TRUE POP_TOP
-				LOAD_GLOBAL RAISE_VARARGS
-				COME_FROM COME_FROM POP_TOP
+				LOGIC_TEST_START expr JUMP_IF_TRUE POP_TOP
+				LOGIC_TEST_START LOAD_GLOBAL RAISE_VARARGS
+				LOGIC_TEST_END LOGIC_TEST_END POP_TOP
 		assert2 ::= expr JUMP_IF_FALSE POP_TOP
-				expr JUMP_IF_TRUE POP_TOP
-				LOAD_GLOBAL expr RAISE_VARARGS
-				COME_FROM COME_FROM POP_TOP
+				LOGIC_TEST_START expr JUMP_IF_TRUE POP_TOP
+				LOGIC_TEST_START LOAD_GLOBAL expr RAISE_VARARGS
+				LOGIC_TEST_END LOGIC_TEST_END POP_TOP
 		assert3 ::= expr JUMP_IF_TRUE POP_TOP
-				LOAD_GLOBAL RAISE_VARARGS
-				COME_FROM POP_TOP
+				LOGIC_TEST_START LOAD_GLOBAL RAISE_VARARGS
+				LOGIC_TEST_END POP_TOP
 		assert4 ::= expr JUMP_IF_TRUE POP_TOP
-				LOAD_GLOBAL expr RAISE_VARARGS
-				COME_FROM POP_TOP
+				LOGIC_TEST_START LOAD_GLOBAL expr RAISE_VARARGS
+				LOGIC_TEST_END POP_TOP
 
 		_jump ::= JUMP_ABSOLUTE
 		_jump ::= JUMP_FORWARD
 
-		ifstmt ::= expr condjmp stmts_opt
-				_jump COME_FROM POP_TOP COME_FROM
+		ifstmt ::= expr condjmp
+                IF_THEN_START stmts_opt IF_THEN_END
+                _jump POP_TOP IF_ELSE_START IF_ELSE_END
 
-		ifelsestmt ::= expr condjmp stmts_opt
-				_jump COME_FROM
-				POP_TOP stmts COME_FROM
+		ifelsestmt ::= expr condjmp
+                IF_THEN_START stmts_opt IF_THEN_END
+				_jump POP_TOP IF_ELSE_START stmts IF_ELSE_END
 
-		trystmt ::= SETUP_EXCEPT stmts_opt
-				POP_BLOCK _jump
-				COME_FROM except_stmt
+		trystmt ::= SETUP_EXCEPT TRY_START stmts_opt
+				TRY_END POP_BLOCK _jump
+				except_stmt
 
-		try_end  ::= END_FINALLY COME_FROM
+		try_end  ::= END_FINALLY TRY_ELSE_START TRY_ELSE_END
 		try_end  ::= except_else
-		except_else ::= END_FINALLY COME_FROM stmts
+		except_else ::= END_FINALLY TRY_ELSE_START stmts TRY_ELSE_END
 
-		except_stmt ::= except_cond except_stmt COME_FROM
-		except_stmt ::= except_conds try_end COME_FROM
-		except_stmt ::= except try_end COME_FROM
+		except_stmt ::= except_cond except_stmt
+		except_stmt ::= except_conds try_end
+		except_stmt ::= except try_end
 		except_stmt ::= try_end
 
-		except_conds ::= except_cond except_conds COME_FROM
+		except_conds ::= except_cond except_conds
 		except_conds ::= 
 
 		except_cond ::= except_cond1
 		except_cond ::= except_cond2
-		except_cond1 ::= DUP_TOP expr COMPARE_OP
+		except_cond1 ::= EXCEPT_START DUP_TOP expr COMPARE_OP
 				JUMP_IF_FALSE
 				POP_TOP POP_TOP POP_TOP POP_TOP
-				stmts_opt _jump COME_FROM
-				POP_TOP
-		except_cond2 ::= DUP_TOP expr COMPARE_OP
+				stmts_opt EXCEPT_END _jump POP_TOP
+		except_cond2 ::= EXCEPT_START DUP_TOP expr COMPARE_OP
 				JUMP_IF_FALSE
 				POP_TOP POP_TOP designator POP_TOP
-				stmts_opt _jump COME_FROM
-				POP_TOP
-		except  ::=  POP_TOP POP_TOP POP_TOP
-				stmts_opt _jump
+				stmts_opt EXCEPT_END _jump POP_TOP
+		except ::= EXCEPT_START POP_TOP POP_TOP POP_TOP
+				stmts_opt EXCEPT_END _jump
 
 		tryfinallystmt ::= SETUP_FINALLY stmts_opt
 				POP_BLOCK LOAD_CONST
-				COME_FROM stmts_opt END_FINALLY
+				stmts_opt END_FINALLY
 
-		whilestmt ::= SETUP_LOOP
-				expr JUMP_IF_FALSE POP_TOP
-				stmts_opt JUMP_ABSOLUTE
-				COME_FROM POP_TOP POP_BLOCK COME_FROM
-		while1stmt ::= SETUP_LOOP
-				JUMP_FORWARD JUMP_IF_FALSE POP_TOP COME_FROM
-				stmts_opt JUMP_ABSOLUTE
-				COME_FROM POP_TOP POP_BLOCK COME_FROM
-		whileelsestmt ::= SETUP_LOOP
-		              	expr JUMP_IF_FALSE POP_TOP
-				stmts_opt JUMP_ABSOLUTE
-				COME_FROM POP_TOP POP_BLOCK
-				stmts COME_FROM
-		while1elsestmt ::= SETUP_LOOP
-		              	JUMP_FORWARD JUMP_IF_FALSE POP_TOP COME_FROM
-				stmts_opt JUMP_ABSOLUTE
-				COME_FROM POP_TOP POP_BLOCK
-				stmts COME_FROM
+        _while1test ::= _jump JUMP_IF_FALSE POP_TOP
+        _while1test ::=
 
-		_for ::= GET_ITER FOR_ITER
+		whilestmt ::= SETUP_LOOP WHILE_START
+				expr condjmp
+				stmts_opt WHILE_END JUMP_ABSOLUTE
+				WHILE_ELSE_START POP_TOP POP_BLOCK WHILE_ELSE_END
+
+		while1stmt ::= SETUP_LOOP _while1test WHILE1_START
+				stmts_opt WHILE1_END JUMP_ABSOLUTE
+				WHILE1_ELSE_START POP_TOP POP_BLOCK WHILE1_ELSE_END
+
+		while12stmt ::= SETUP_LOOP WHILE1_START
+				_jump JUMP_IF_FALSE POP_TOP
+				stmts_opt WHILE1_END JUMP_ABSOLUTE
+				WHILE1_ELSE_START POP_TOP POP_BLOCK WHILE1_ELSE_END
+
+		whileelsestmt ::= SETUP_LOOP WHILE_START
+		       	expr condjmp
+				stmts_opt WHILE_END JUMP_ABSOLUTE
+				WHILE_ELSE_START POP_TOP POP_BLOCK
+				stmts WHILE_ELSE_END
+
+		while1elsestmt ::= SETUP_LOOP _while1test WHILE1_START
+				stmts_opt WHILE1_END JUMP_ABSOLUTE
+				WHILE1_ELSE_START POP_TOP POP_BLOCK
+				stmts WHILE1_ELSE_END
+
+		while12elsestmt ::= SETUP_LOOP WHILE1_START
+				_jump JUMP_IF_FALSE POP_TOP
+				stmts_opt WHILE1_END JUMP_ABSOLUTE
+				WHILE1_ELSE_START POP_TOP POP_BLOCK
+				stmts WHILE1_ELSE_END
+
+		_for ::= GET_ITER FOR_START FOR_ITER
 		_for ::= LOAD_CONST FOR_LOOP
 
 		forstmt ::= SETUP_LOOP expr _for designator
-				stmts_opt JUMP_ABSOLUTE
-				COME_FROM POP_BLOCK COME_FROM
+				stmts_opt FOR_END JUMP_ABSOLUTE
+				FOR_ELSE_START POP_BLOCK FOR_ELSE_END
 		forelsestmt ::= SETUP_LOOP expr _for designator
-				stmts_opt JUMP_ABSOLUTE
-				COME_FROM POP_BLOCK stmts COME_FROM
+				stmts_opt FOR_END JUMP_ABSOLUTE
+				FOR_ELSE_START POP_BLOCK stmts FOR_ELSE_END
 
 		'''
 
@@ -419,22 +443,28 @@ class Parser(GenericASTBuilder):
 		expr ::= and
 		expr ::= and2
 		expr ::= or
-		or   ::= expr JUMP_IF_TRUE  POP_TOP expr COME_FROM
-		and  ::= expr JUMP_IF_FALSE POP_TOP expr COME_FROM
-		and2 ::= _jump JUMP_IF_FALSE POP_TOP COME_FROM expr COME_FROM
+		or   ::= expr JUMP_IF_TRUE  POP_TOP LOGIC_TEST_START expr LOGIC_TEST_END
+		and  ::= expr JUMP_IF_FALSE POP_TOP LOGIC_TEST_START expr LOGIC_TEST_END
+		and2 ::= _jump JUMP_IF_FALSE POP_TOP LOGIC_TEST_START expr LOGIC_TEST_END
 
 		cmp ::= cmp_list
 		cmp ::= compare
 		compare ::= expr expr COMPARE_OP
-		cmp_list ::= expr cmp_list1 ROT_TWO POP_TOP
-				COME_FROM
+		cmp_list ::= expr cmp_list1 ROT_TWO IF_ELSE_START POP_TOP
+				IF_ELSE_END
 		cmp_list1 ::= expr DUP_TOP ROT_THREE
 				COMPARE_OP JUMP_IF_FALSE POP_TOP
-				cmp_list1 COME_FROM
+				cmp_list1
 		cmp_list1 ::= expr DUP_TOP ROT_THREE
 				COMPARE_OP JUMP_IF_FALSE POP_TOP
-				cmp_list2 COME_FROM
-		cmp_list2 ::= expr COMPARE_OP JUMP_FORWARD
+				IF_THEN_START cmp_list1
+		cmp_list1 ::= expr DUP_TOP ROT_THREE
+				COMPARE_OP JUMP_IF_FALSE POP_TOP
+				IF_THEN_START cmp_list2
+		cmp_list1 ::= expr DUP_TOP ROT_THREE
+				COMPARE_OP JUMP_IF_FALSE POP_TOP
+				cmp_list2
+		cmp_list2 ::= expr COMPARE_OP IF_THEN_END JUMP_FORWARD
 		mapexpr ::= BUILD_MAP kvlist
 
 		kvlist ::= kvlist kv

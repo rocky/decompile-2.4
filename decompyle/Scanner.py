@@ -21,7 +21,7 @@ class Token:
         self.attr = attr
         self.pattr = pattr
         self.offset = offset
-        
+
     def __cmp__(self, o):
         if isinstance(o, Token):
             # both are tokens: compare type and pattr 
@@ -29,7 +29,8 @@ class Token:
         else:
             return cmp(self.type, o)
 
-    def __repr__(self):		return str(self.type)
+    def __repr__(self):
+        return str(self.type)
     def __str__(self):
         pattr = self.pattr or ''
         return '%s\t%-17s %r' % (self.offset, self.type, pattr)
@@ -104,17 +105,24 @@ class Scanner:
         Token = self.Token # shortcut
 
         code = co.co_code
-        cf = self.find_jump_targets(code)
+        structures = self.find_structures(code)
+        #cf = self.find_jump_targets(code)
         n = len(code)
         i = 0
         extended_arg = 0
         free = None
         while i < n:
             offset = i
-            if cf.has_key(offset):
-                for j in range(cf[offset]):
-                    rv.append(Token('COME_FROM',
-                                    offset="%s_%d" % (offset, j) ))
+            #j = 0
+            #if cf.has_key(offset):
+            #    for k in range(cf[offset]):
+            #        rv.append(Token('COME_FROM', offset="%s_%d" % (offset, j)))
+            #        j += 1
+            if structures.has_key(offset):
+                j = 0
+                for elem in structures[offset]:
+                    rv.append(Token(elem, offset="%s_%d" % (offset, j)))
+                    j += 1
 
             c = code[i]
             op = ord(c)
@@ -398,6 +406,7 @@ class Scanner:
         JUMP_ABSOLUTE = self.dis.opmap['JUMP_ABSOLUTE']
         start = parent['start']
         end = parent['end']
+
         ## Map the second start point for 'while 1:' in python 2.3+ to start
         try:    target = self.__while1[target]
         except: pass
@@ -427,12 +436,14 @@ class Scanner:
         FOR_ITER      = self.dis.opmap['FOR_ITER']
         GET_ITER      = self.dis.opmap['GET_ITER']
         SETUP_EXCEPT  = self.dis.opmap['SETUP_EXCEPT']
+        SETUP_FINALLY = self.dis.opmap['SETUP_FINALLY']
         JUMP_FORWARD  = self.dis.opmap['JUMP_FORWARD']
         JUMP_ABSOLUTE = self.dis.opmap['JUMP_ABSOLUTE']
         JUMP_IF_FALSE = self.dis.opmap['JUMP_IF_FALSE']
         JUMP_IF_TRUE  = self.dis.opmap['JUMP_IF_TRUE']
         END_FINALLY   = self.dis.opmap['END_FINALLY']
         POP_TOP       = self.dis.opmap['POP_TOP']
+        POP_BLOCK     = self.dis.opmap['POP_BLOCK']
         try:    SET_LINENO = self.dis.opmap['SET_LINENO']
         except: SET_LINENO = None
 
@@ -445,6 +456,8 @@ class Scanner:
         start  = parent['start']
         end    = parent['end']
         for s in self.__structs:
+            if s['type'] == 'LOGIC_TEST':
+                continue ## logic tests are not structure containers
             _start = s['start']
             _end   = s['end']
             if (_start <= pos < _end) and (_start >= start and _end < end):
@@ -457,11 +470,20 @@ class Scanner:
 
         if op == SETUP_LOOP:
             start = pos+3
-            if ord(code[start])==JUMP_FORWARD:
+            # this is for python2.2. Maybe we can optimize and not call this for 2.3+ -Dan
+            while ord(code[start]) == SET_LINENO:
+                start += 3
+            start_op = ord(code[start])
+            while1 = False
+            if start_op in (JUMP_FORWARD, JUMP_ABSOLUTE):
                 ## This is a while 1 (has a particular structure)
-                start = self.__get_target(code, start, JUMP_FORWARD)
+                start = self.__get_target(code, start, start_op)
                 start = self.__restrict_to_parent(start, parent)
                 self.__while1[pos+3] = start ## map between the 2 start points
+                while1 = True
+                if start_op == JUMP_ABSOLUTE and ord(code[pos+6])==JUMP_IF_FALSE:
+                    # special `while 1: pass` in python2.3
+                    self.__fixed_jumps[pos+3] = start
             target = self.__get_target(code, pos, op)
             end    = self.__restrict_to_parent(target, parent)
             if target != end:
@@ -474,18 +496,32 @@ class Scanner:
             while i < jump_back and ord(code[i])==SET_LINENO:
                 i += 3
             if ord(code[i]) in (FOR_ITER, GET_ITER):
-                loop_type = 'for'
+                loop_type = 'FOR'
             else:
-                loop_type = 'while'
                 lookup = [JUMP_IF_FALSE, JUMP_IF_TRUE]
-                test = self.__first_instr(code, pos+3, jump_back, lookup)
-                assert(test is not None)
-                self.__ignored_ifs.append(test)
+                test = self.__first_instr(code, pos+3, jump_back, lookup, jump_back+3)
+                if test is None:
+                    # this is a special while 1 structure in python 2.4
+                    while1 = True
+                else:
+                    #assert(test is not None)
+                    test_target = self.__get_target(code, test)
+                    test_target = self.__restrict_to_parent(test_target, parent)
+                    next = (ord(code[test_target]), ord(code[test_target+1]))
+                    if next == (POP_TOP, POP_BLOCK):
+                        self.__ignored_ifs.append(test)
+                    else:
+                        while1 = True
+                if while1 == True:
+                    loop_type = 'WHILE1'
+                else:
+                    loop_type = 'WHILE'
+
             self.__loops.append(target)
-            self.__structs.append({'type': loop_type + '-loop',
+            self.__structs.append({'type': loop_type,
                                    'start': target,
                                    'end':   jump_back})
-            self.__structs.append({'type': loop_type + '-else',
+            self.__structs.append({'type': loop_type + '_ELSE',
                                    'start': jump_back+3,
                                    'end':   end})
         elif self.__list_comprehension(code, pos, op):
@@ -500,23 +536,27 @@ class Scanner:
             assert(jump_back is not None)
             target = self.__get_target(code, jump_back, JUMP_ABSOLUTE)
             start = self.__restrict_to_parent(target, parent)
-            self.__structs.append({'type': 'list-comprehension',
+            self.__structs.append({'type': 'LIST_COMPREHENSION',
                                    'start': start,
                                    'end':   jump_back})
         elif op == SETUP_EXCEPT:
             start  = pos+3
             target = self.__get_target(code, pos, op)
+            # this should be redundant as it can't be out of boundaries -Dan
+            # check if it can be removed
             end    = self.__restrict_to_parent(target, parent)
             if target != end:
+                #print "!!!!found except target != end: %s %s" % (target, end)
                 self.__fixed_jumps[pos] = end
             ## Add the try block
-            self.__structs.append({'type':  'try',
+            self.__structs.append({'type':  'TRY',
                                    'start': start,
                                    'end':   end-4})
             ## Now isolate the except and else blocks
             start  = end
             target = self.__get_target(code, start-3)
-            self.__fix_parent(code, target, parent)
+            #self.__fix_parent(code, target, parent)
+            try_else_start = target
             end    = self.__restrict_to_parent(target, parent)
             if target != end:
                 self.__fixed_jumps[start-3] = end
@@ -524,16 +564,19 @@ class Scanner:
             end_finally = self.__last_instr(code, start, end, END_FINALLY)
             assert(end_finally is not None)
             lookup = [JUMP_ABSOLUTE, JUMP_FORWARD]
-            jump_end = self.__last_instr(code, start, end, lookup)
+            jump_end = self.__last_instr(code, start, end_finally, lookup)
             assert(jump_end is not None)
 
             target = self.__get_target(code, jump_end)
-            end = self.__restrict_to_parent(target, parent)
-            if target != end:
-                self.__fixed_jumps[jump_end] = end
+            if target == try_else_start:
+                end = end_finally+1
+            else:
+                end = self.__restrict_to_parent(target, parent)
+                if target != end:
+                    self.__fixed_jumps[jump_end] = end
 
             ## Add the try-else block
-            self.__structs.append({'type':  'try-else',
+            self.__structs.append({'type':  'TRY_ELSE',
                                    'start': end_finally+1,
                                    'end':   end})
             ## Add the except blocks
@@ -542,8 +585,12 @@ class Scanner:
                 jmp = self.__next_except_jump(code, i, end_finally, target)
                 if jmp is None:
                     break
-                self.__structs.append({'type':  'except',
-                                       'start': i,
+                if i!=start and ord(code[i])==POP_TOP:
+                    pos = i + 1
+                else:
+                    pos = i
+                self.__structs.append({'type':  'EXCEPT',
+                                       'start': pos,
                                        'end':   jmp})
                 if target != end:
                     self.__fixed_jumps[jmp] = end
@@ -551,6 +598,7 @@ class Scanner:
         elif op == JUMP_ABSOLUTE:
             ## detect if we have a 'foo and bar and baz...' structure
             ## that was optimized (thus the presence of JUMP_ABSOLUTE)
+            return # no longer needed. just return. remove this elif later -Dan
             if pos in self.__fixed_jumps:
                 return ## Already marked
             if parent['end'] - pos < 7:
@@ -583,19 +631,27 @@ class Scanner:
                 return
             start  = pos+4 ## JUMP_IF_FALSE/TRUE + POP_TOP
             target = self.__get_target(code, pos, op)
-            if parent['start'] <= target < parent['end']:
+            if parent['start'] <= target <= parent['end']:
                 if ord(code[target-3]) in (JUMP_ABSOLUTE, JUMP_FORWARD):
                     if_end = self.__get_target(code, target-3)
-                    self.__fix_parent(code, if_end, parent)
+                    #self.__fix_parent(code, if_end, parent)
                     end = self.__restrict_to_parent(if_end, parent)
+                    if ord(code[end-3]) == JUMP_ABSOLUTE:
+                        else_end = self.__get_target(code, end-3)
+                        if if_end == else_end and if_end in self.__loops:
+                            end -= 3 ## skip the continue instruction
                     if if_end != end:
                         self.__fixed_jumps[target-3] = end
-                    self.__structs.append({'type':  'if-then',
+                    self.__structs.append({'type':  'IF_THEN',
                                            'start': start,
                                            'end':   target-3})
-                    self.__structs.append({'type':  'if-else',
+                    self.__structs.append({'type':  'IF_ELSE',
                                            'start': target+1,
                                            'end':   end})
+                else:
+                    self.__structs.append({'type':  'LOGIC_TEST',
+                                           'start': start,
+                                           'end':   target})
 
     def find_jump_targets(self, code):
         """
@@ -646,6 +702,75 @@ class Scanner:
             else:
                 i += 1
         return targets
+
+    def find_structures(self, code):
+        """
+        Detect all structures in a byte code.
+
+        Return a mapping from offset to a list of keywords that should
+        be inserted at that position.
+        """
+        HAVE_ARGUMENT = self.dis.HAVE_ARGUMENT
+
+        hasjrel = self.dis.hasjrel
+        hasjabs = self.dis.hasjabs
+
+        needFixing = (self.__pyversion >= 2.3)
+
+        n = len(code)
+        self.__structs = [{'type':  'root',
+                           'start': 0,
+                           'end':   n-1}]
+        self.__loops = []  ## All loop entry points
+        self.__while1 = {} ## 'while 1:' in python 2.3+ has another start point
+        self.__fixed_jumps = {} ## Map fixed jumps to their real destination
+        self.__ignored_ifs = [] ## JUMP_IF_XXXX's we should ignore
+
+        targets = {}
+        i = 0
+        while i < n:
+            op = ord(code[i])
+
+            if needFixing:
+                ## Determine structures and fix jumps for 2.3+
+                self.__detect_structure(code, i, op)
+
+            if op >= HAVE_ARGUMENT:
+                i += 3
+            else:
+                i += 1
+        #from pprint import pprint
+        #print
+        #print "structures: ",
+        #pprint(self.__structs)
+        #print "loops: ",
+        #pprint(self.__loops)
+        #print "while1: ",
+        #pprint(self.__while1)
+        #print "fixed jumps: ",
+        #pprint(self.__fixed_jumps)
+        #print "ignored ifs: ",
+        #pprint(self.__ignored_ifs)
+        #print
+        points = {}
+        endpoints = {}
+        for s in self.__structs:
+            typ   = s['type']
+            start = s['start']
+            end   = s['end']
+            if typ == 'root':
+                continue
+            ## startpoints of the outer structures must come first
+            ## endpoints of the inner structures must come first
+            points.setdefault(start, []).append("%s_START" % typ)
+            endpoints.setdefault(end, []).insert(0, "%s_END" % typ)
+        for k, v in endpoints.items():
+            points.setdefault(k, []).extend(v)
+        #print "points: ",
+        #pprint(points)
+        #print
+        return points
+
 
 
 __scanners = {}
