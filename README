@@ -1,14 +1,13 @@
 
              decompyle -- A Python byte-code decompiler
-                          2.3
-                          2004-12-12
+                          version 2.4, 02 Jan 2006
 
 Introduction
 ------------
 
 'decompyle' converts Python byte-code back into equivalent Python
 source. It accepts byte-code from any Python version starting with 1.5
-up to 2.3.
+up to 2.4.
 
 The generated source is very readable: docstrings, lists, tuples and
 hashes get pretty-printed.
@@ -35,7 +34,7 @@ Features
 
   * decompyles Python byte-code into equivalent Python source
 
-  * decompyles byte-code from Python versions 1.5 up to 2.3
+  * decompyles byte-code from Python versions 1.5 up to 2.4
 
   * pretty-prints docstrings, hashes, lists and tuples
   

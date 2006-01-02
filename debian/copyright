@@ -19,6 +19,8 @@ The files marshal_22.c and dis_22.py are taken from the python 2.2 source.
 The file marshal_20.c is a slightly modified version of marshal_22.c.
 The files marshal_23.c, dis_23.py and opcode_23.py are taken from the
 python 2.3 source.
+The files marshal_24.c, dis_24.py and opcode_24.py are taken from the
+python 2.4 source with small alterations.
 
 The copyright and license for both python 2.2 and python 2.3 are
 included below.
