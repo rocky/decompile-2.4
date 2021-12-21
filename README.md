@@ -4,4 +4,4 @@ I have been able to install this using pyenv using Python 2.3.7 using `python ./
 
 Since this is the basis for a number of subsequent decompilers, I find it interesting to see how ideas evolved.
 
-See HISTORY.md for my (rocky) reading on the evolution to this point.
+See [HISTORY.md](https://github.com/rocky/decompile-2.4/blob/master/HISTORY.md) for my (rocky) reading on the evolution to this point.
