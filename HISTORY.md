@@ -9,7 +9,7 @@ paper doesn't talk about decompilation, nor did John have that in mind at that t
 [This](http://pages.cpsc.ucalgary.ca/~aycock/spark/content.html#contributors) contains a of people acknowledged in developing SPARK. What's amazing about this code is that it is reasonably fast and has survived up to Python 3 with relatively little change. This work was done in conjunction with his Ph.D Thesis. This was finished around 2001. In working on his thesis, John realized SPARK could be used to deparse Python bytecode. In the fall of 1999, he started writing the Python program, "decompyle", to do this.
 
 To help with control structure deparsing the instruction sequence was augmented with pseudo instruction `COME_FROM`. This code introduced another clever idea: using table-driven semantics routines, using
-format specifiers.
+format specifiers. John's view that SPARK is more a complete compiling system rather than the Earley Algorithm parser which forms its central core. Given this, I suppose this it shouldn't be surprising that there should be some additioanl support in the semantic analysis phase.
 
 The last mention of a release of SPARK from John is around 2002. As released, although the Earley Algorithm parser was in good shape, this code was woefully lacking as serious Python deparser.
 
@@ -18,10 +18,12 @@ first subsequent public release announcement that I can find is ["decompyle - A 
 
 From the CHANGES file found in [the tarball for that release](http://old-releases.ubuntu.com/ubuntu/pool/universe/d/decompyle2.2/decompyle2.2_2.2beta1.orig.tar.gz) (and also listed in this repository in CHANGES),
 it appears that Hartmut did most of the work to get this code to be able to decompile the full Python language. He added precedence to the table specifiers, support for multiple versions of Python, the pretty-printing of docstrings, lists, and hashes. He also wrote test and verification routines of deparsed bytecode, and used this in an extensive set of tests that he also wrote. He says he could verify against the
-entire Python library. However I have subsequently found small and relatively obscure bugs in the decompilation code.
+entire Python library. However I have subsequently found small and relatively obscure bugs in the public decompilation code which is now in this repository. However, the link cited next seems to indicate that Hartmut has been continuing to improve things privately.
 
-decompyle2.2 was packaged for Debian (sarge) by [Ben Burton around 2002](https://packages.qa.debian.org/d/decompyle.html). As
-it worked on Python 2.2 only long after Python 2.3 and 2.4 were in widespread use, it was removed.
+[Crazy Compilers](http://www.crazy-compilers.com/decompyle/) offers a byte-code decompiler service for versions of Python up to 2.7 with Python 3.x on the way. As someone who worked in compilers, it is tough to make a living by working on compilers. (For example, based on [John Aycock's recent papers](http://pages.cpsc.ucalgary.ca/~aycock/) it doesn't look like he's done anything compiler-wise since SPARK). So I hope people will use the crazy-compilers service. I wish them the success that his good work deserves.
+
+
+decompyle2.2 was packaged for Debian (sarge) by [Ben Burton around 2002](https://packages.qa.debian.org/d/decompyle.html). As it worked on Python 2.2 only long after Python 2.3 and 2.4 were in widespread use, it was removed.
 
 [Crazy Compilers](http://www.crazy-compilers.com/decompyle/) offered (offers?) a byte-code decompiler service for versions of Python up to 2.6. As someone who worked in compilers, it is tough to make a living by
 working on compilers. (For example, based on [John Aycock's recent papers](http://pages.cpsc.ucalgary.ca/~aycock/) it doesn't look like he's done anything compiler-wise since SPARK). So I hope people will use the crazy-compilers service. I wish them the success that his good work deserves.
