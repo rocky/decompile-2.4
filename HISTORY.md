@@ -25,6 +25,8 @@ entire Python library. However I have subsequently found small and relatively ob
 
 decompyle2.2 was packaged for Debian (sarge) by [Ben Burton around 2002](https://packages.qa.debian.org/d/decompyle.html). As it worked on Python 2.2 only long after Python 2.3 and 2.4 were in widespread use, it was removed.
 
+As far as I know, this code has never been in PyPI or the previous incarnation, the Python Cheese shop.
+
 [Crazy Compilers](http://www.crazy-compilers.com/decompyle/) offered (offers?) a byte-code decompiler service for versions of Python up to 2.6. As someone who worked in compilers, it is tough to make a living by
 working on compilers. (For example, based on [John Aycock's recent papers](http://pages.cpsc.ucalgary.ca/~aycock/) it doesn't look like he's done anything compiler-wise since SPARK). So I hope people will use the crazy-compilers service. I wish them the success that his good work deserves.
 
