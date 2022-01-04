@@ -27,9 +27,6 @@ decompyle2.2 was packaged for Debian (sarge) by [Ben Burton around 2002](https:/
 
 As far as I know, this code has never been in PyPI or the previous incarnation, the Python Cheese shop.
 
-[Crazy Compilers](http://www.crazy-compilers.com/decompyle/) offered (offers?) a byte-code decompiler service for versions of Python up to 2.6. As someone who worked in compilers, it is tough to make a living by
-working on compilers. (For example, based on [John Aycock's recent papers](http://pages.cpsc.ucalgary.ca/~aycock/) it doesn't look like he's done anything compiler-wise since SPARK). So I hope people will use the crazy-compilers service. I wish them the success that his good work deserves.
-
 Dan Pascu did a bit of work from late 2004 to early 2006 to get this code to handle first Python 2.3 and then 2.4 bytecodes. Because of jump optimization introduced in the CPython bytecode compiler at that
 time, various `JUMP` instructions were classified to assist parsing. For example, due to the way that code generation and line number table work, jump instructions to an earlier offset must be looping jumps,
 such as those found in a `continue` statement; `COME FROM` instructions were reintroduced.  See [RELEASE-2.4-CHANGELOG.txt](https://github.com/rocky/python-uncompyle6/blob/master/DECOMPYLE-2.4-CHANGELOG.txt)
